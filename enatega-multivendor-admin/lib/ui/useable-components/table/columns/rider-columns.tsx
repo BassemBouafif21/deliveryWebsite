@@ -81,13 +81,13 @@ export const RIDER_TABLE_COLUMNS = ({
     {
       headerName: t('Zone'),
       propertyName: 'zone',
-      body: (rider: IRiderResponse) => rider.zone.title,
+      body: (rider: IRiderResponse) => rider.zone?.title || '-',
     },
     {
       headerName: t('Vehicle Type'),
       propertyName: 'vehicleType',
       body: (rider: IRiderResponse) =>
-        toTextCase(rider.vehicleType.replaceAll('_', ' '), 'title'),
+        toTextCase(rider.vehicleType?.replaceAll('_', ' ') || '', 'title'),
     },
     {
       headerName: t('Available'),

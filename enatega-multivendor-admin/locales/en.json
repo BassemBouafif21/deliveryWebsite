@@ -606,6 +606,7 @@
   "license_expiry_date": "License Expiry Date",
   "vehicle_plate_number": "Vehicle Plate Number",
   "bsb_iban_swift_code": "BSB / IBAN / Swift Code",
+  "Vehicle Type": "Vehicle Type",
   "vehicle_type": "Vehicle Type",
   "rider_deleted": "Rider Deleted",
   "Staff updated": "Staff updated",

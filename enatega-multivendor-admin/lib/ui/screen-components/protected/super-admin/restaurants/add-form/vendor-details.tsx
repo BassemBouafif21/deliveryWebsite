@@ -194,7 +194,7 @@ export default function VendorDetails({
                 console.log(values, 'values');
                 await onVendorSubmitHandler(values);
               }}
-              validateOnChange={false}
+              validateOnChange={true}
             >
               {({
                 values,
@@ -387,6 +387,7 @@ export default function VendorDetails({
                                 'image/jpg',
                                 'image/webp',
                                 'image/jpeg',
+                                'image/png',
                               ]}
                               maxFileHeight={1080}
                               maxFileWidth={1080}

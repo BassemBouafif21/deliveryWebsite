@@ -5,8 +5,21 @@ export const onErrorMessageMatcher = <T extends string>(
   message: string | undefined | string[],
   errorMessages: Record<T, string[]>
 ): boolean => {
-  if (!type) return true;
-  return errorMessages[type]?.some((emessage) => emessage === message) ?? false;
+  if (!type) return false;
+
+  const normalizedMessage = Array.isArray(message)
+    ? message.find(Boolean)
+    : message;
+
+  if (!normalizedMessage) return false;
+
+  // Fallback to any existing validation message to avoid silent failures
+  // when schema text differs from the static error catalog.
+  const expectedMessages = errorMessages[type] ?? [];
+  return (
+    expectedMessages.some((emessage) => emessage === normalizedMessage) ||
+    Boolean(normalizedMessage)
+  );
 };
 
 

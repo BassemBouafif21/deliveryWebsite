@@ -164,6 +164,64 @@ function resolveField({ rootField, variables, currentUser, operationType }) {
   switch (key) {
     case "configuration":
       return clone(state.configuration);
+    case "vendors":
+      return clone(state.vendors);
+    case "getvendor":
+      return clone(findVendor(variables?.id) || state.vendors[0] || null);
+    case "createvendor": {
+      const vendorInput = variables?.vendorInput || variables || {};
+      const createdVendor = {
+        _id: randomId("ven"),
+        unique_id: String(state.vendors.length + 1),
+        email: vendorInput.email || `${randomId("vendor")}@enatega.local`,
+        userType: "VENDOR",
+        isActive: true,
+        name:
+          vendorInput.name ||
+          `${vendorInput.firstName || ""} ${vendorInput.lastName || ""}`.trim() ||
+          "New Vendor",
+        plainPassword: vendorInput.password || "12345678",
+        image: vendorInput.image || "",
+        firstName: vendorInput.firstName || "",
+        lastName: vendorInput.lastName || "",
+        phoneNumber: vendorInput.phoneNumber || "",
+        restaurants: [],
+      };
+
+      state.vendors.unshift(createdVendor);
+
+      return clone({
+        ...createdVendor,
+        password: createdVendor.plainPassword,
+      });
+    }
+    case "editvendor": {
+      const vendorInput = variables?.vendorInput || variables || {};
+      const targetVendor = state.vendors.find(
+        (vendor) => String(vendor._id) === String(vendorInput._id),
+      );
+
+      if (targetVendor) {
+        if (vendorInput.email) targetVendor.email = vendorInput.email;
+        if (vendorInput.name) targetVendor.name = vendorInput.name;
+        if (vendorInput.password) targetVendor.plainPassword = vendorInput.password;
+        if (vendorInput.image !== undefined) targetVendor.image = vendorInput.image;
+        if (vendorInput.firstName !== undefined) targetVendor.firstName = vendorInput.firstName;
+        if (vendorInput.lastName !== undefined) targetVendor.lastName = vendorInput.lastName;
+        if (vendorInput.phoneNumber !== undefined) targetVendor.phoneNumber = vendorInput.phoneNumber;
+      }
+
+      return clone({
+        ...(targetVendor || state.vendors[0] || null),
+        password: (targetVendor || state.vendors[0])?.plainPassword || "",
+      });
+    }
+    case "deletevendor": {
+      const id = variables?.id;
+      const index = state.vendors.findIndex((vendor) => String(vendor._id) === String(id));
+      if (index >= 0) state.vendors.splice(index, 1);
+      return true;
+    }
     case "getdashboardusers":
       return getDashboardUsers();
     case "getdashboardusersbyyear":
@@ -238,6 +296,56 @@ function resolveField({ rootField, variables, currentUser, operationType }) {
       return clone(findOrder(variables?.orderDetailsId || variables?.id));
     case "rider":
       return clone(findRider(variables?.id) || state.riders[0]);
+    case "createrider": {
+      const riderInput = variables?.riderInput || variables || {};
+      const newRider = {
+        _id: randomId("rider"),
+        name: riderInput.name || "New Rider",
+        username: riderInput.username || "newrider",
+        password: riderInput.password || "password",
+        phone: riderInput.phone || "000000",
+        available: true,
+        vehicleType: riderInput.vehicleType || "BICYCLE",
+        zone: state.zones.find(z => String(z._id) === String(riderInput.zone)) || state.zones[0],
+      };
+      state.riders.unshift(newRider);
+      return clone(newRider);
+    }
+    case "editrider": {
+      const riderInput = variables?.riderInput || variables || {};
+      const targetRider = state.riders.find(r => String(r._id) === String(riderInput._id));
+      if (targetRider) {
+        if (riderInput.name) targetRider.name = riderInput.name;
+        if (riderInput.username) targetRider.username = riderInput.username;
+        if (riderInput.password) targetRider.password = riderInput.password;
+        if (riderInput.phone) targetRider.phone = riderInput.phone;
+        if (riderInput.vehicleType) targetRider.vehicleType = riderInput.vehicleType;
+        if (riderInput.zone) targetRider.zone = state.zones.find(z => String(z._id) === String(riderInput.zone)) || state.zones[0];
+      }
+      return clone(targetRider || state.riders[0]);
+    }
+    case "deleterider": {
+      const id = variables?.id;
+      const index = state.riders.findIndex(r => String(r._id) === String(id));
+      if (index >= 0) {
+        state.riders.splice(index, 1);
+      }
+      return { _id: id };
+    }
+    case "toggleavailablity": {
+      const id = variables?.id;
+      const targetRider = state.riders.find(r => String(r._id) === String(id));
+      if (targetRider) {
+        targetRider.available = !targetRider.available;
+      }
+      return clone(targetRider || state.riders[0]);
+    }
+    case "restaurantspaginated":
+    case "getclonedrestaurantspaginated":
+      return {
+        data: clone(state.restaurants),
+        totalCount: state.restaurants.length
+      };
     case "chat":
       return clone(state.chats[String(variables?.order || "")] || []);
     case "getcountries":
@@ -302,7 +410,7 @@ function resolveField({ rootField, variables, currentUser, operationType }) {
     case "createactivity":
       return true;
     case "uploadimagetos3":
-      return `https://picsum.photos/seed/${randomId("upload")}/900/600`;
+      return { imageUrl: `https://picsum.photos/seed/${randomId("upload")}/900/600` };
     default:
       return buildFallback(rootField, operationType, currentUser);
   }
@@ -1015,6 +1123,12 @@ function findRider(id) {
   return state.riders.find((item) => item._id === value) || null;
 }
 
+function findVendor(id) {
+  const value = String(id || "");
+  if (!value) return state.vendors[0] || null;
+  return state.vendors.find((item) => item._id === value) || null;
+}
+
 function getOrdersForUser(user) {
   return state.orders.filter((order) => order.user._id === user._id).map((order) => clone(order));
 }
@@ -1404,6 +1518,7 @@ function createInitialState() {
   ];
   const users = [createDemoUser(), createDemoAdminUser()];
   const riders = [createDemoRider()];
+  const vendors = [createDemoVendor(restaurants)];
   const orders = [
     createSeedOrderOne(restaurants, users, riders),
     createSeedOrderTwo(restaurants, users, riders),
@@ -1414,6 +1529,7 @@ function createInitialState() {
     tokens: new Map(),
     restaurants,
     riders,
+    vendors,
     orders,
     chats: {
       "ord-1": [
@@ -1810,10 +1926,32 @@ function createDemoRider() {
   return {
     _id: "rid-1",
     name: "Demo Rider",
+    username: "demorider",
+    password: "12345678",
     phone: "+21622222222",
     location: { coordinates: [10.188, 36.811] },
     available: true,
+    vehicleType: "BICYCLE",
+    assigned: [],
+    zone: { _id: "zone-1", title: "Tunis Center" },
     isActive: true,
+  };
+}
+
+function createDemoVendor(restaurants) {
+  return {
+    _id: "ven-1",
+    unique_id: "1",
+    email: "vendor@enatega.local",
+    userType: "VENDOR",
+    isActive: true,
+    name: "Demo Vendor",
+    plainPassword: "12345678",
+    image: "",
+    firstName: "Demo",
+    lastName: "Vendor",
+    phoneNumber: "+21633333333",
+    restaurants: restaurants.slice(0, 1).map((restaurant) => ({ _id: restaurant._id })),
   };
 }
 

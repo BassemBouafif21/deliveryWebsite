@@ -196,7 +196,7 @@ export default function VendorAddForm({
                   isEditingVendor && vendorId ? VendorEditSchema : VendorSchema
                 }
                 enableReinitialize={true}
-                validateOnChange={false}
+                validateOnChange={true}
                 onSubmit={async (values) => {
                   await onVendorCreate(values);
                 }}
@@ -342,7 +342,12 @@ export default function VendorAddForm({
                           key="image"
                           name="image"
                           title={t('Upload Image')}
-                          fileTypes={['image/jpg', 'image/webp', 'image/jpeg']}
+                          fileTypes={[
+                            'image/jpg',
+                            'image/webp',
+                            'image/jpeg',
+                            'image/png',
+                          ]}
                           maxFileHeight={1080}
                           maxFileWidth={1080}
                           maxFileSize={MAX_SQUARE_FILE_SIZE}

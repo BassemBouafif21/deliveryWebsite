@@ -6,11 +6,9 @@ export const GET_RIDERS = gql`
       _id
       name
       username
-      password
       phone
       available
       vehicleType
-      assigned
       zone {
         _id
         title
@@ -25,10 +23,8 @@ export const GET_RIDER = gql`
       _id
       name
       username
-      password
       phone
       available
-      assigned
       zone {
         _id
         title

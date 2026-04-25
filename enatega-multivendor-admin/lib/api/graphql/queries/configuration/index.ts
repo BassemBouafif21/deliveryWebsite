@@ -22,12 +22,6 @@ export const GET_CONFIGURATION = gql`
       twilioEnabled
       skipWhatsAppOTP
       twilioWhatsAppNumber
-      formEmail
-      sendGridApiKey
-      sendGridEnabled
-      sendGridEmail
-      sendGridEmailName
-      sendGridPassword
       dashboardSentryUrl
       webSentryUrl
       apiSentryUrl
